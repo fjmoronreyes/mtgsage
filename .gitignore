@@ -33,3 +33,6 @@ htmlcov/
 # Operating system
 .DS_Store
 Thumbs.db
+
+# Client-provided reference documents
+data/*.pdf
