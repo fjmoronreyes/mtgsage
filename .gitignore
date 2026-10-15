@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+.venv/
+venv/
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Testing and quality tools
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Local databases and generated RAG artifacts
+*.sqlite3
+*.db
+/data/cache/
+/data/indexes/
+/data/vector_store/
+
+# Operating system
+.DS_Store
+Thumbs.db
