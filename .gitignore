@@ -36,3 +36,6 @@ Thumbs.db
 
 # Client-provided reference documents
 data/*.pdf
+
+# Generated vector database
+data/chroma/

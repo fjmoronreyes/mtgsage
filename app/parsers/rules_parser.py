@@ -1,10 +1,17 @@
 
+"""Extract numbered rules from the MTG Comprehensive Rules PDF."""
+
+import re
 from dataclasses import dataclass
 from pathlib import Path
-import re
+from time import perf_counter
 
 import pymupdf
 
+from app.logger import get_logger
+
+
+logger = get_logger(__name__)
 
 _RULE_ID = re.compile(
     r"^(?P<id>\d{3}\.\d+[a-z]?)\.?\s+(?P<text>.+)$"
@@ -33,6 +40,7 @@ def _join_wrapped_lines(lines: list[str]) -> str:
 
     return text
 
+
 @dataclass(frozen=True, slots=True)
 class Rule:
     rule_id: str
@@ -46,6 +54,8 @@ class RulesParser:
     """Parse numbered rules from the April 2026 MTG PDF layout."""
 
     def parse(self, path: Path) -> list[Rule]:
+        start_time = perf_counter()
+
         rules: list[Rule] = []
         section = ""
         current_section = ""
@@ -72,7 +82,11 @@ class RulesParser:
 
                         x = line["bbox"][0]
 
-                        if text == "Glossary" and started and abs(x - 90) < 3:
+                        if (
+                            text == "Glossary"
+                            and started
+                            and abs(x - 90) < 3
+                        ):
                             if current_id is not None:
                                 rules.append(
                                     Rule(
@@ -83,13 +97,25 @@ class RulesParser:
                                         last_page,
                                     )
                                 )
+
+                            logger.info(
+                                "Rules parsed | count=%d | "
+                                "duration=%.2fs | source=%s",
+                                len(rules),
+                                perf_counter() - start_time,
+                                path.name,
+                            )
+
                             return rules
 
                         if abs(x - 90) < 3:
                             if _SECTION.match(text):
                                 section = text
 
-                            if _SECTION.match(text) or _CHAPTER.match(text):
+                            if (
+                                _SECTION.match(text)
+                                or _CHAPTER.match(text)
+                            ):
                                 continue
 
                         match = _RULE_ID.match(text)
@@ -133,5 +159,13 @@ class RulesParser:
                     last_page,
                 )
             )
+
+        logger.info(
+            "Rules parsed | count=%d | "
+            "duration=%.2fs | source=%s",
+            len(rules),
+            perf_counter() - start_time,
+            path.name,
+        )
 
         return rules
