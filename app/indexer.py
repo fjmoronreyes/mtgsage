@@ -14,6 +14,24 @@ from app.semantic.vector_store import ChromaVectorStore, SyncResult
 
 logger = get_logger("app.indexer")
 
+PROGRESS_INTERVAL_SECONDS = 30
+
+
+def _format_duration(seconds: float) -> str:
+    """Format an elapsed or estimated duration."""
+    total = max(0, round(seconds))
+
+    hours, remainder = divmod(total, 3600)
+    minutes, seconds = divmod(remainder, 60)
+
+    if hours:
+        return f"{hours}h {minutes}m {seconds}s"
+
+    if minutes:
+        return f"{minutes}m {seconds}s"
+
+    return f"{seconds}s"
+
 
 class CorpusIndexer:
     """Coordinate parsing, embedding and vector storage."""
@@ -38,16 +56,14 @@ class CorpusIndexer:
         self,
         source: Path,
         limit: int | None = None,
-        batch_size: int = 64,
+        batch_size: int = 32,
     ) -> SyncResult:
-        """Index selected documents, preserving existing records."""
+        """Index documents incrementally and report progress with ETA."""
         if limit is not None and limit < 1:
             raise ValueError("Limit must be positive")
 
         if batch_size < 1:
             raise ValueError("Batch size must be positive")
-
-        started = perf_counter()
 
         documents = self.parser.parse(source)
 
@@ -60,7 +76,7 @@ class CorpusIndexer:
             raise ValueError("No documents to index")
 
         logger.info(
-            "Indexing started | selected=%d | stored_before=%d | "
+            "Indexing started | documents=%d | stored_before=%d | "
             "batch_size=%d",
             total,
             self.store.count(),
@@ -70,7 +86,9 @@ class CorpusIndexer:
         added = 0
         updated = 0
         unchanged = 0
-        next_progress_pct = 10
+
+        started = perf_counter()
+        last_report = started
 
         for offset in range(0, total, batch_size):
             batch = documents[offset:offset + batch_size]
@@ -85,34 +103,46 @@ class CorpusIndexer:
             unchanged += result.unchanged
 
             processed = min(offset + batch_size, total)
-            progress = 100 * processed / total
+            now = perf_counter()
 
-            # Maximum ~10 progress messages, regardless of
-            # the number of batches or embedding requests.
-            if (
-                progress >= next_progress_pct
+            elapsed = now - started
+
+            should_report = (
+                offset == 0
+                or now - last_report >= PROGRESS_INTERVAL_SECONDS
                 or processed == total
-            ):
+            )
+
+            if should_report:
+                progress = processed / total * 100
+                speed = processed / elapsed if elapsed > 0 else 0
+
+                remaining = total - processed
+                eta = remaining / speed if speed > 0 else 0
+
                 logger.info(
-                    "Indexing progress | %d/%d (%.1f%%) | "
+                    "Indexing progress | %.1f%% (%d/%d) | "
+                    "speed=%.2f docs/s | elapsed=%s | ETA=%s | "
                     "added=%d | updated=%d | unchanged=%d",
+                    progress,
                     processed,
                     total,
-                    progress,
+                    speed,
+                    _format_duration(elapsed),
+                    _format_duration(eta),
                     added,
                     updated,
                     unchanged,
                 )
 
-                while next_progress_pct <= progress:
-                    next_progress_pct += 10
+                last_report = now
 
         elapsed = perf_counter() - started
 
         logger.info(
-            "Indexing completed | duration=%.2fs | "
-            "stored=%d | added=%d | updated=%d | unchanged=%d",
-            elapsed,
+            "Indexing completed | duration=%s | stored=%d | "
+            "added=%d | updated=%d | unchanged=%d",
+            _format_duration(elapsed),
             self.store.count(),
             added,
             updated,
@@ -141,14 +171,14 @@ def main() -> None:
     cli.add_argument(
         "--recreate",
         action="store_true",
-        help="Rebuild the MTG collection from scratch.",
+        help="Delete and rebuild the MTG collection.",
     )
 
     cli.add_argument(
         "--batch-size",
         type=int,
-        default=64,
-        help="Documents per indexing batch.",
+        default=32,
+        help="Documents per synchronization batch (default: 32).",
     )
 
     args = cli.parse_args()
