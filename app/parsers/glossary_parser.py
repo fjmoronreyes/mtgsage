@@ -4,9 +4,14 @@
 import re
 from dataclasses import dataclass
 from pathlib import Path
+from time import perf_counter
 
 import pymupdf
 
+from app.logger import get_logger
+
+
+logger = get_logger(__name__)
 
 RULE_REFERENCE = re.compile(r"\b\d{3}(?:\.\d+[a-z]?)?\b")
 
@@ -45,6 +50,8 @@ class GlossaryParser:
         )
 
     def parse(self, path: Path) -> list[GlossaryEntry]:
+        start_time = perf_counter()
+
         entries: list[GlossaryEntry] = []
 
         inside_glossary = False
@@ -75,11 +82,17 @@ class GlossaryParser:
                         ).strip()
 
                         if not inside_glossary:
-                            if text == "Glossary" and spans[0]["size"] > 11:
+                            if (
+                                text == "Glossary"
+                                and spans[0]["size"] > 11
+                            ):
                                 inside_glossary = True
                             continue
 
-                        if text == "Credits" and spans[0]["size"] > 11:
+                        if (
+                            text == "Credits"
+                            and spans[0]["size"] > 11
+                        ):
                             if current_term is not None:
                                 entries.append(
                                     self._build_entry(
@@ -89,11 +102,23 @@ class GlossaryParser:
                                         last_page,
                                     )
                                 )
+
+                            logger.info(
+                                "Glossary parsed | entries=%d | "
+                                "duration=%.2fs | source=%s",
+                                len(entries),
+                                perf_counter() - start_time,
+                                path.name,
+                            )
+
                             return entries
 
                         is_term = (
                             abs(line["bbox"][0] - 90) < 3
-                            and all(span["flags"] & 16 for span in spans)
+                            and all(
+                                span["flags"] & 16
+                                for span in spans
+                            )
                             and all(
                                 9 <= span["size"] <= 11
                                 for span in spans

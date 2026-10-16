@@ -5,9 +5,13 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal
 
+from app.logger import get_logger
+
 from .glossary_parser import GlossaryEntry, GlossaryParser
 from .rules_parser import Rule, RulesParser
 
+
+logger = get_logger(__name__)
 
 DocumentKind = Literal["rule", "glossary"]
 
@@ -62,7 +66,9 @@ class GeneralParser:
         )
 
     @staticmethod
-    def _from_glossary(entry: GlossaryEntry) -> IndexDocument:
+    def _from_glossary(
+        entry: GlossaryEntry,
+    ) -> IndexDocument:
         content = (
             "Magic: The Gathering Glossary\n"
             f"Term: {entry.term}\n\n"
@@ -86,5 +92,13 @@ class GeneralParser:
             *(self._from_rule(rule) for rule in rules),
             *(self._from_glossary(entry) for entry in glossary),
         ]
+
+        logger.info(
+            "Knowledge corpus ready | rules=%d | "
+            "glossary=%d | total=%d",
+            len(rules),
+            len(glossary),
+            len(self.paragraphs),
+        )
 
         return self.paragraphs
