@@ -39,3 +39,8 @@ data/*.pdf
 
 # Generated vector database
 data/chroma/
+
+# Local secrets
+.env
+.env.*
+!.env.example
