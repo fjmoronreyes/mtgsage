@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "An evidence-grounded AI assistant for Magic: The Gathering"
 readme = "README.md"
 requires-python = ">=3.14,<3.15"
-dependencies = ["pymupdf (>=1.28.2,<2.0.0)", "httpx (>=0.28.1,<0.29.0)", "chromadb (>=1.5.9,<2.0.0)"]
+dependencies = ["pymupdf (>=1.28.2,<2.0.0)", "httpx (>=0.28.1,<0.29.0)", "chromadb (>=1.5.9,<2.0.0)", "google-genai (>=2.31.0,<3.0.0)", "python-dotenv (>=1.2.4,<2.0.0)", "streamlit (>=1.66.0,<2.0.0)"]
 
 [tool.poetry]
 package-mode = false

@@ -1,4 +1,6 @@
 from pathlib import Path
+import os
+from dotenv import load_dotenv
 
 # Project directories
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -24,3 +26,7 @@ EMBEDDING_QUERY_INSTRUCTION = (
 # Local vector database
 CHROMA_DIR = DATA_DIR / "chroma"
 CHROMA_COLLECTION = "mtgsage_knowledge"
+
+# Gemini generative model
+load_dotenv(PROJECT_ROOT / ".env", override=False)
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
