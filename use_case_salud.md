@@ -101,7 +101,7 @@ Todos los componentes del asistente se ejecutarán en la red privada de la clín
 Distinguimos dos tipos de información:
 
 - **Documentación clínica:** los PDF y Word permanecerán en el almacenamiento interno de la clínica. Docling extraerá su contenido y Open WebUI lo indexará mediante Ollama y ChromaDB. Se conservarán las referencias a los documentos originales, incluyendo versión y página.
-- **Datos de pacientes:** continuarán almacenados en MySQL, dentro del sistema de citas existente. El asistente no tendrá conexión directa con esta base de datos.
+- **Datos de pacientes:** permanecerán en MySQL, dentro del sistema de citas existente. No se consultarán ni indexarán en ChromaDB, ya que el asistente solo necesita los protocolos clínicos y los datos que el médico introduzca manualmente para realizar consultas o cálculos.
 
 Los datos que un médico introduzca manualmente en una consulta, cálculo o ECG también se considerarán sensibles y permanecerán dentro de la infraestructura local.
 
@@ -160,7 +160,7 @@ Es importante definir estos límites para evitar expectativas equivocadas y gara
 
 - **No diagnosticará ni prescribirá tratamientos:** el asistente proporcionará información y cálculos de apoyo, pero las decisiones clínicas seguirán siendo responsabilidad del médico. Un LLM puede cometer errores, incluso cuando utiliza fuentes fiables.
 
-- **No accederá a los historiales de pacientes:** la base de datos MySQL permanecerá aislada. Integrarla añadiría riesgos de privacidad y complejidad que no son necesarios para los objetivos iniciales.
+- **No accederá directamente a los datos de pacientes:** la base de datos MySQL permanecerá aislada. Integrarla añadiría riesgos de privacidad y complejidad que no son necesarios para los objetivos iniciales.
 
 - **No interpretará cualquier imagen médica:** el análisis de ECG se limitará a las capacidades de un módulo especializado y clínicamente validado. No se ofrecerán diagnósticos generales a partir de radiografías u otras imágenes.
 
