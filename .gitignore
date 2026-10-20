@@ -33,3 +33,14 @@ htmlcov/
 # Operating system
 .DS_Store
 Thumbs.db
+
+# Client-provided reference documents
+data/*.pdf
+
+# Generated vector database
+data/chroma/
+
+# Local secrets
+.env
+.env.*
+!.env.example
