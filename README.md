@@ -68,6 +68,17 @@ Para preparar únicamente las dependencias Python, sin consultar ni descargar el
 bash setup.sh --skip-model
 ```
 
+### Acceso temporal para la evaluación
+
+Para facilitar la evaluación de MtgSage, hemos preparado una clave temporal de Gemini que permite ejecutar la demo sin necesidad de crear una cuenta o configurar un proyecto propio en Google AI Studio.
+
+Proporcionaremos esta clave por separado, mediante un canal privado, y la mantendremos activa durante **72 horas desde su entrega**.
+
+Para utilizarla, únicamente necesitamos añadirla al archivo `.env`:
+
+```dotenv
+GEMINI_API_KEY=clave_temporal_proporcionada
+
 ### Configurar la clave de Gemini
 
 La clave vive en `.env`, en la raíz del repositorio:
